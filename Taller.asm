@@ -21,6 +21,7 @@
     passTry             db  4
     msgPassCorrect      db  "Contrasenia correcta: BIENVENIDO", ln, ln, rt, fn
     msgPassIncorrect    db  "Contrasenia invalida, repita", ln, ln, rt, fn
+    msgSalida           db ln, rt, "Saliendo...", fn
     
     ;Menu
     msgMenu db  ln, ln, rt, "---------- Menu principal ----------", ln, ln, rt
@@ -58,16 +59,17 @@
     
     ;Opcion 3
         ; mensajes 
-        c_msgLinea1        db 10,13, "-----------------------------------",'$'
-        c_msgTitulo        db 10,13, "HEXADECIMAL A BINARIO & OPERACIONES ",'$'
-        c_msgLinea2        db 10,13, "-----------------------------------",'$'
-        c_msgPedirc_hex1   db 10,13, 'Num 1 : Digite numero en hexadecimal entre 00 y FF : $'
-        c_msgPedirc_hex2   db 10,13, 'Num 2 : Digite numero en hexadecimal entre 00 y FF : $'
-        c_msgc_hexa        db 0dh,0ah, 'Numero en hexadecimal  : $'
-        c_msgc_bin         db 0dh,0ah, 'Numero en binario  :     $'
-        c_msgError         db 0dh,0ah, 'Entrada invalida $'
-        c_msgSalida        db 0dh,0ah, 'Ha salido del programa $'
-        c_msgLEsp          db 0dh,0ah, '                         $' 
+        c_msgLinea1         db 10,13, "",'$'
+        c_msgTitulo         db 10,13, "---------- Hexadecimal a binario y operaciones ----------",'$'
+        c_msgLinea2         db 10,13, "",'$'
+        c_msgPedirc_hex1    db 10,13, 'Digite el numero 1 en hexadecimal entre 00 y FF : $'
+        c_msgPedirc_hex2    db 10,13, 'Digite el numero 2 en hexadecimal entre 00 y FF : $'
+        c_msgc_hexa         db 0dh,0ah, 'Numero en hexadecimal  : $'
+        c_msgc_bin          db 0dh,0ah, 'Numero en binario  :     $'
+        c_msgError          db 0dh,0ah, 'Entrada invalida $'
+        c_msgSalida         db 0dh,0ah, 'Ha salido del programa $'
+        c_msgLEsp           db 0dh,0ah, '                         $'
+        msgOperaciones      db ln, rt, "---------- Operaciones ----------", fn
          
         ;mensaje op en binario  
         c_msgnot           db 0dh,0ah, 'NOT binario:     $'
@@ -548,8 +550,7 @@ hexToBin proc
          mov ax,c_hex
          mov c_hex2,ax 
          
-    ;mostrar num2 
-    call saltoLinea     
+    ;mostrar num2    
     call printc_msgc_hexa
     call mostrarNumc_hex2
     call printc_msgc_bin
@@ -570,8 +571,10 @@ hexToBin proc
     call impc_hex
     call convertirc_binc_hex2
    
-    
     ;operaciones 
+    call saltoLinea
+    mov dx, offset msgOperaciones
+    call impCadena 
     
     call saltoLinea
     ;AND  c_binario
@@ -605,7 +608,8 @@ hexToBin proc
     lea dx, c_msgxorh
     call impStr 
     call convertirc_binc_hexOrig
-    
+
+    call pause
     jmp menu
     
 endp 
@@ -1319,12 +1323,21 @@ error:
     loop reset 
 
 over:
+    mov dx, offset msgSalida
+    call impCadena
     call finProgram
     
 salidaLogin:
     ret
     
-endp 
+endp
+
+;Pausa
+pause proc
+    mov ah, 08h         ;Pause
+    int 21h
+    ret
+endp
 
 ; Ejecuta el menu
 ejecutarMenu proc 
@@ -1352,19 +1365,24 @@ menu:
 salir:
     call finProgram
     
-opcion1:  
+opcion1:
+    call saltoLinea  
     mov dx, offset msgOpcion1
     call impCadena
+    
+    call saltoLinea
                  
     call leerNumero
     mov num1, ax
     
     call leerNumero
-    mov num2, ax
+    mov num2, ax 
     
     mov ax, num1
     add ax, num2
     mov resultado, ax
+    
+    call saltoLinea
     
     mov dx, offset msgResultadoSuma
     call impCadena
@@ -1376,13 +1394,19 @@ opcion1:
     
     mov dx, offset msgResultadoResta
     call impCadena
-    call impResultado
+    call impResultado 
+                     
+    call saltoLinea
+    call pause
     
     jmp menu
 
 opcion2:
+    call saltoLinea
     mov dx, offset msgOpcion2
     call impCadena
+    
+    call saltoLinea
     
     call leerNumero
     mov num1, ax
@@ -1394,6 +1418,8 @@ opcion2:
     mov bx, num2
     imul bx
     mov resultado, ax
+    
+    call saltoLinea
     
     mov dx, offset msgResultadoMul
     call impCadena
@@ -1429,12 +1455,17 @@ opcion2:
     mov dx, offset msgResultadoDiv
     call impCadena
     call impResultado
-     
+    
+    call saltoLinea
+    call pause
     jmp menu
     
     divzero:
     mov dx, offset msgDivZero
     call impCadena
+    
+    call saltoLinea
+    call pause
     jmp menu
     
     num1ToP:
@@ -1465,12 +1496,17 @@ opcion2:
 
 opcion3:
     call hexToBin 
-
+    
+    call saltoLinea
+    call pause
     jmp menu
 
 opcion4:
+    call saltoLinea
     mov dx, offset msgOpcion4
     call impCadena
+    
+    call saltoLinea
     
     repeticiones:
     mov ax, 000h
@@ -1509,7 +1545,10 @@ opcion4:
     finOp4:
     mov reps, 000Fh
     mov n, 0001h
-    mov pot, 0001h
+    mov pot, 0001h 
+    
+    call saltoLinea
+    call pause
     jmp menu    
 
 endp
