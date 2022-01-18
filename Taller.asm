@@ -308,7 +308,7 @@ negativo:
     ret
 endp
 
-; Imprime un numero de maximo 3 digitos con signo
+; Imprime un numero con signo
 impResultado proc
     
     mov ax, resultado
@@ -324,153 +324,23 @@ menor:
     mul bx
     mov resultado, ax
     mov sign, 2dh
-    mov bl, 100
-    div bl    
-    call ajustarU
-    cmp al, "0"
-    je vacioCN
-    mov ah, 00h
-    mov c, ax
-    call ajustarD
-    
-    mov cx, resultado
-    mov bl, 100
-    mul bl
-    sub cx, ax
-    mov resultado, cx
-    
-    decenaN:
-    
-    mov ax, resultado
-    mov bl, 10
-    div bl
-    mov cl, al
-    mov ax, c
-    cmp al, " "
-    je vacioDN
-    mov al, cl
-    call ajustarU
-    
-    unidadN:
-    mov d, ax
-    call ajustarD
-    
-    mov cx, resultado
-    mov bl, 10
-    mul bl
-    sub cx, ax
-    mov resultado, cx
-    
-    unidadN2:
-    mov ax, resultado
-    call ajustarU
-    mov u, ax
     
     mov dx, offset sign
-    call impCadena     
-    
-    mov dx, offset c
-    call impCadena 
-    
-    mov dx, offset d
     call impCadena
-    
-    mov dx, offset u
-    call impCadena  
-    
-    call resetCh
+    mov ax, resultado
+    call print_ax     
     
     ret   
-
-    vacioCN:
-    mov c, 20h
-    jmp decenaN
-
-    vacioDN:
-    mov al, cl
-    call ajustarU
-    cmp al, "0"
-    jg unidadN
-    
-    mov d, 20h
-    jmp unidadN2 
         
 mayor:      
-    mov resultado, ax
     mov sign, 20h
-    mov bl, 100
-    div bl    
-    call ajustarU
-    cmp al, "0"
-    je vacioCP
-    mov ah, 00h
-    mov c, ax
-    call ajustarD
-    
-    mov cx, resultado
-    mov bl, 100
-    mul bl
-    sub cx, ax
-    mov resultado, cx
-    
-    decenaP:
-    
-    mov ax, resultado
-    mov bl, 10
-    div bl
-    mov cl, al
-    mov ax, c
-    cmp al, " "
-    je vacioDP
-    mov al, cl
-    call ajustarU
-    
-    unidadP:
-    mov d, ax
-    call ajustarD
-    
-    mov cx, resultado
-    mov bl, 10
-    mul bl
-    sub cx, ax
-    mov resultado, cx
-    
-    unidadP2:
-    
-    mov ax, resultado
-    call ajustarU
-    mov u, ax
     
     mov dx, offset sign
-    call impCadena     
-    
-    mov dx, offset c
-    call impCadena 
-    
-    mov dx, offset d
     call impCadena
-    
-    mov dx, offset u
-    call impCadena 
-    
-    call resetCh
+    mov ax, resultado
+    call print_ax      
     
     ret   
-
-    vacioCP:
-    mov c, 20h
-    jmp decenaP
-
-    vacioDP:
-    mov al, cl
-    call ajustarU
-    cmp al, "0"
-    jg unidadP
-    
-    mov d, 20h
-    jmp unidadP2
-    
-    ret
     
 zerol:
     mov dx, offset zero
@@ -478,6 +348,33 @@ zerol:
     
     ret
 
+endp
+
+print_ax proc
+cmp ax, 0
+jne print_ax_r
+    push ax
+    mov al, '0'
+    mov ah, 0eh
+    int 10h
+    pop ax
+    ret 
+print_ax_r:
+    pusha
+    mov dx, 0
+    cmp ax, 0
+    je pn_done
+    mov bx, 10
+    div bx    
+    call print_ax_r
+    mov ax, dx
+    add al, 30h
+    mov ah, 0eh
+    int 10h    
+    jmp pn_done
+pn_done:
+    popa  
+    ret  
 endp
 
 ; Hex to bin
@@ -527,21 +424,20 @@ hexToBin proc
     call saltoLinea
     ;NOT del primer numero c_bin
     lea dx, c_msgnot   
-    call impStr      ;imprimir mensaje 
-    call notc_bin1      ;llamamos a no c_binario 
-    call impc_bin1      ;imprimir c_bin  
+    call impStr        
+    call notc_bin1     
+    call impc_bin1     
             
           
     ;NOT del primer numero en c_hexa    
     lea dx, c_msgnoth
     call impStr 
-    ;call impc_hex
     call convertirc_binc_hex1
     
      
     
     call saltoLinea                 
-    mov c_bin,0 ;limpiar c_bin 
+    mov c_bin,0 
     
     ;numero 2   
     mov dx,dx
@@ -704,41 +600,35 @@ endp
 pedirc_hexa1  proc 
     call printc_msgPedirc_hex1
     
-    lea dx,c_maxL ;espera a que insertemos el numero  en c_hexadecimal       
-    mov ah,10   ; Toma la direcci?n de un dato a partir de un registro. 
-    int 21h     ; Ejemplo:
-                ;Lea Ax, dato
-                ; mov dx, ax
+    lea dx,c_maxL       
+    mov ah,10  
+    int 21h          
    
-    mov cl,c_c_hexL  ;la longitud de la cadena debe ser de 2    
+    mov cl,c_c_hexL     
     cmp cl,2
-    jne mostrarError    ;si no lanza mensaje error 
+    jne mostrarError  
    
-    mov ch,0       ;limpia ch para que cx sea la long de la cadena        
-    lea si,c_hex     ; obtiene la direccion de c_hex en si  
+    mov ch,0            
+    lea si,c_hex     
     lea di,c_bin
     
     ret 
     call mostrarError                   
-    
-
 
 endp
 
 pedirc_hexa2  proc 
     call printc_msgPedirc_hex2
-    lea dx,c_maxL ;espera a que insertemos el numero  en c_hexadecimal       
-    mov ah,10   ; Toma la direcci?n de un dato a partir de un registro. 
-    int 21h     ; Ejemplo:
-                ;Lea Ax, dato
-                ; mov dx, ax
+    lea dx,c_maxL       
+    mov ah,10  
+    int 21h              
    
-    mov cl,c_c_hexL  ;la longitud de la cadena debe ser de 2    
+    mov cl,c_c_hexL     
     cmp cl,2
-    jne mostrarError    ;si no lanza mensaje error 
+    jne mostrarError   
    
-    mov ch,0       ;limpia ch para que cx sea la long de la cadena        
-    lea si,c_hex     ; obtiene la direccion de c_hex en si  
+    mov ch,0             
+    lea si,c_hex   
     lea di,c_bin
     
     ret 
@@ -750,7 +640,6 @@ endp
 ;mostrar numero1 en c_hexa y en c_bin 
 mostrarNumc_bin1 proc 
 
-    ;lea dx,[c_bin1+2]
     lea dx,c_bin1
     mov ah,9
     int 21h 
@@ -768,7 +657,7 @@ endp
 
 ;mostrar numero2 en c_hexa
 mostrarNumc_bin2 proc 
-    ;lea dx,c_bin2 
+
     lea dx,c_bin2
     mov ah,9
     int 21h 
@@ -786,24 +675,24 @@ endp
 
 ;c_binario
 c_binary proc 
-    push cx     ;guardar cx       
-    mov cl,4    ; mueve cl 4 bits a la izquierda        
-    shl al,cl   ;el nivel h  al ahora es el nivel inferior de al original  
-    mov cx,4    ; c_cont en 4 
+    push cx           
+    mov cl,4         
+    shl al,cl    
+    mov cx,4   
     
     sc_bin:
-    shl al,1          ;mover a la izquierda        
-    jc one         ; si tiene acarreo va a one y guarda 1 en esa pos          
-    mov byte ptr [di],'0'      ;en la matriz c_binaria se guarda 0
+    shl al,1                
+    jc one                
+    mov byte ptr [di],'0'    
     jmp restart                 
     one:                        
-    mov byte ptr [di],'1' ;guarfa 1 
+    mov byte ptr [di],'1' 
     
     restart:
-    add di,1  ;aumenta el iterador en 1 
-    loop sc_bin ; hace todo d enuevo hasta que llegue el c_contador
+    add di,1  
+    loop sc_bin 
     
-    pop cx    ; suelta a cx                     
+    pop cx                      
     ret
 endp
 
@@ -811,26 +700,26 @@ endp
 convH2B PROC
     
     s:
-    mov al,[si]    ;el valor que tiene al en la posicion si        
+    mov al,[si]           
     cmp al,'9'            
-    ja english     ;si es mayor a 9 o sea e suna letra lo pasamos a lenguaje        
+    ja english            
     cmp al,'0'             
     jb mostrarErr         
     jmp toc_binary          
     
     english:
-    or al,32      ;cambia el lenguaje a minusculas      
+    or al,32           
     cmp al,'a'            
-    jb mostrarErr ;si es menor de a lanza error        
+    jb mostrarErr         
     cmp al,'f'            
-    ja mostrarErr ; si es mayor de f lanza error         
-    sub al,7      ;restamos 7 al registro para convertir a num        
+    ja mostrarErr         
+    sub al,7             
     toc_binary:
-    sub al,30h    ; restamos 30 para convertirlo         
+    sub al,30h           
     call c_binary 
       
-    inc si        ; incrementa en 1 suc_bindice        
-    loop s        ;vamos a s a leer otro digito     
+    inc si               
+    loop s             
           
     jmp exit    
     
@@ -870,9 +759,9 @@ convertirc_binc_hexOrig proc
     jne check
      
     c_continuar:
-    SUB AL,30H      ; restamos 30h y los ponemos en al 
-                       ;
-    SHL BX,CL       ; 1 espacio a la izquierda en bx
+    SUB AL,30H    
+                  
+    SHL BX,CL    
     OR BL,AL  
     ;inc si
     inc di   
@@ -889,29 +778,27 @@ convertirc_binc_hexOrig proc
     
     cmp ch,4
     je fin 
-    inc ch           ;incrementa ch 
+    inc ch          
    
-    mov dl,bh        ;MOVE BH a DL
-    shr dl,4         ;4 espacios a la derecha en dl 
+    mov dl,bh       
+    shr dl,4        
    
-    cmp dl,0AH       ; comparamos si dl < 10 
-    jl digito         ;si es asi vmaos a digit 
+    cmp dl,0AH     
+    jl digito       
    
-    add dl,37H       ;sumamos 37 a dl -> convertir 
+    add dl,37H      
     mov ah,2 
     INT 21H  
-    ;mov al, dl      
-    ;mov c_hexp[si],al          ;imprimiendo dl 
-    rol bx,4         ;rotamos bx a la izquierda 4 veces cada c_binario de 4 bits es un dig c_hexadecimal 
+   
+    rol bx,4        
     jmp salida
     
     digito:
-    add dl,30H         ;sumamos 30 a dl 
+    add dl,30H       
     mov ah,2 
     INT 21H
-    ;mov al, dl       
-    ;mov c_hexp[si],al            ;imprimimos dl 
-    rol bx,4           ;rotamos bx 4 veces a la izquierda
+   
+    rol bx,4           
     jmp salida 
     
     fin:
@@ -935,11 +822,11 @@ convertirc_binc_hex1 proc
     jne check1
      
     c_continuar1:
-    SUB AL,30H      ; restamos 30h y los ponemos en al 
-                       ;
-    SHL BX,CL       ; 1 espacio a la izquierda en bx
+    SUB AL,30H     
+                     
+    SHL BX,CL       
     OR BL,AL  
-    ;inc si
+    
     inc di   
     jmp inicio1   
     check1:
@@ -954,29 +841,27 @@ convertirc_binc_hex1 proc
     
     cmp ch,4
     je fin1 
-    inc ch           ;incrementa ch 
+    inc ch           
    
-    mov dl,bh        ;MOVE BH a DL
-    shr dl,4         ;4 espacios a la derecha en dl 
+    mov dl,bh        
+    shr dl,4         
    
-    cmp dl,0AH       ; comparamos si dl < 10 
-    jl digito1         ;si es asi vmaos a digit 
+    cmp dl,0AH      
+    jl digito1       
    
-    add dl,37H       ;sumamos 37 a dl -> convertir 
+    add dl,37H      
     mov ah,2 
     INT 21H  
-    ;mov al, dl      
-    ;mov c_hexp[si],al          ;imprimiendo dl 
-    rol bx,4         ;rotamos bx a la izquierda 4 veces cada c_binario de 4 bits es un dig c_hexadecimal 
+    
+    rol bx,4         
     jmp salida1
     
     digito1:
-    add dl,30H         ;sumamos 30 a dl 
+    add dl,30H         
     mov ah,2 
     INT 21H
-    ;mov al, dl       
-    ;mov c_hexp[si],al            ;imprimimos dl 
-    rol bx,4           ;rotamos bx 4 veces a la izquierda
+    
+    rol bx,4           
     jmp salida1 
     
     fin1:
@@ -1001,11 +886,11 @@ convertirc_binc_hex2 proc
     jne check2
      
     c_continuar2:
-    SUB AL,30H      ; restamos 30h y los ponemos en al 
-                       ;
-    SHL BX,CL       ; 1 espacio a la izquierda en bx
+    SUB AL,30H     
+                       
+    SHL BX,CL      
     OR BL,AL  
-    ;inc si
+    
     inc di   
     jmp inicio2   
     check2:
@@ -1020,29 +905,27 @@ convertirc_binc_hex2 proc
     
     cmp ch,4
     je fin2 
-    inc ch           ;incrementa ch 
+    inc ch          
    
-    mov dl,bh        ;MOVE BH a DL
-    shr dl,4         ;4 espacios a la derecha en dl 
+    mov dl,bh        
+    shr dl,4        
    
-    cmp dl,0AH       ; comparamos si dl < 10 
-    jl digito2         ;si es asi vmaos a digit 
+    cmp dl,0AH      
+    jl digito2         
    
-    add dl,37H       ;sumamos 37 a dl -> convertir 
+    add dl,37H       
     mov ah,2 
     INT 21H  
-    ;mov al, dl      
-    ;mov c_hexp[si],al          ;imprimiendo dl 
-    rol bx,4         ;rotamos bx a la izquierda 4 veces cada c_binario de 4 bits es un dig c_hexadecimal 
+    
+    rol bx,4        
     jmp salida2
     
     digito2:
-    add dl,30H         ;sumamos 30 a dl 
+    add dl,30H         
     mov ah,2 
     INT 21H
-    ;mov al, dl       
-    ;mov c_hexp[si],al            ;imprimimos dl 
-    rol bx,4           ;rotamos bx 4 veces a la izquierda
+    
+    rol bx,4           
     jmp salida2 
     
     fin2:
@@ -1127,8 +1010,7 @@ notc_bin1 proc
     cmp si, 8
     jz finnot
     mov ax, c_bin1[si]  
-    ;mov ax, c_bin1aux[si] 
-    ;parte alta 
+   
     cmp ah, 31h 
     je p30h      
     jne p31h 
@@ -1165,8 +1047,7 @@ notc_bin2 proc
     cmp si, 8
     jz finnot2
     mov ax, c_bin2[si] 
-    ;mov ax, c_bin2aux[si] 
-    ;parte alta 
+    
     cmp ah, 31h 
     je p30h2      
     jne p31h2
@@ -1208,8 +1089,7 @@ c_bin_And proc
     rutand:     
     cmp cx, 8
     jz finand
-    ;mov ax, c_bin1[si] 
-    ;mov bx, c_bin2[si]  
+    
     mov ax, c_bin1aux[si] 
     mov bx, c_bin2aux[si]
     AND ax, bx
@@ -1227,8 +1107,7 @@ c_bin_or proc
     rutor:     
     cmp cx, 8
     jz finor
-    ;mov ax, c_bin1[si] 
-    ;mov bx, c_bin2[si]
+   
     mov ax, c_bin1aux[si] 
     mov bx, c_bin2aux[si]
     OR ax, bx
@@ -1245,8 +1124,6 @@ c_bin_xor proc
     rutxor:     
     cmp si, 8
     jz finxor
-    ;mov ax, c_bin1[si] 
-    ;mov bx, c_bin2[si] 
     
     mov ax, c_bin1aux[si] 
     mov bx, c_bin2aux[si] 
@@ -1423,6 +1300,7 @@ opcion2:
     
     mov dx, offset msgResultadoMul
     call impCadena
+    mov ax, resultado
     call impResultado
     
     mov cx, 000h
@@ -1559,7 +1437,7 @@ main proc
     
     call cls    
     
-    call login   
+    ;call login   
     
     call ejecutarMenu
    
